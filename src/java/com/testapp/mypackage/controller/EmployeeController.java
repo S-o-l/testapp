@@ -31,16 +31,6 @@ public class EmployeeController {
     public @ResponseBody String submitEmployee(@RequestBody String emplJson) {
         Employee employee = new Employee();
         
-        System.out.println(emplJson + "ФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФФ");
-        String utf8String = "";
-        String text = "";
-        try {
-        text = new String(emplJson.getBytes("UTF-8"));
-        utf8String = new String(emplJson.getBytes("Cp1251"), "UTF-8");
-        } catch (UnsupportedEncodingException ex) {}
-        System.out.println(utf8String);
-        System.out.println(text);
-        
         try {
         ObjectMapper mapper = new ObjectMapper();
         employee = mapper.readValue(emplJson, Employee.class);

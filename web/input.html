@@ -41,7 +41,6 @@ and open the template in the editor.
                 if (!($("#inputSurnamePlace").html() == "Ок") || !($("#inputNamePlace").html() == "Ок")) {
                     $("#serverAnswer").html("Заполните верно имя и фамилию!").addClass("alert").addClass("alert-error");
                 } else {
-                    console.log("Testing ----------" + $("#inputSurnamePlace").html() + " " + $("#inputNamePlace").html());
                     $("#serverAnswer").html("").removeClass("alert").removeClass("alert-error");
                     sendForm();
                 }
@@ -57,7 +56,6 @@ and open the template in the editor.
                 department["title"] = $("#selectDepartment").val();
                 department["dep_id"] = $("#selectDepartment").children(":selected").attr("id");
                 passing["department"] = department;
-                console.log(JSON.stringify(passing));
                 $.ajax ({
                     url: "map/submitemployee",
                     type: "POST",

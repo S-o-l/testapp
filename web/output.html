@@ -45,8 +45,6 @@ and open the template in the editor.
                 });
             }
             function formOutput(page) {
-                console.log(JSON.stringify(indexedEmployees));
-                console.log("-----------" + Math.ceil(indexedEmployees.length / 5));
                 var paginationLength = Math.ceil(indexedEmployees.length / 5);//(indexedEmployees.length / 5 | 0) + 1;
                 if (page > paginationLength) page = paginationLength;
                 formTable(page);
@@ -59,7 +57,6 @@ and open the template in the editor.
                 $("#employeeTableBody").html("");
                 var startingKey = (page - 1) * 5;
                 var endingKey = (((page * 5) - 1) < indexedEmployees.length - 1) ? ((page * 5) - 1) : indexedEmployees.length - 1;
-                console.log("starting: " + startingKey + " ending: " + endingKey);
                 for (j= startingKey; j <= endingKey; j++) {
                     var newRow = document.createElement("tr");
                     newRow.setAttribute("id", "rowNumber" + j);
@@ -94,7 +91,6 @@ and open the template in the editor.
                 newLi.innerHTML = "<a href=\"#\">" + "Первая" + "</a>";
                 document.getElementById("paginationBody").appendChild(newLi);
                 for (j = leftPage; j <= rightPage; j++) {
-                    console.log(j);
                     var newLi = document.createElement("li");
                     newLi.setAttribute("id", "page" + j);
                     newLi.setAttribute("onclick", "formOutput(" + j + ")");
@@ -142,7 +138,6 @@ and open the template in the editor.
             }
             function serverConfirm() {
                 var page = Math.floor($("#employeeTableBody").attr("data-employeeindex") / 5) + 1;
-                console.log(page + "---------------");
                 getAll(page);
                 $("#confirmationHeader").collapse("show");
                 window.setTimeout(function () {
