@@ -1,0 +1,84 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Intro page</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="JS/jquery.js"></script>
+        <script src="JS/bootstrap.js"></script>
+        <link href="CSS/bootstrap.css" rel="stylesheet">
+        <link href="CSS/bootstrap-responsive.css" rel="stylesheet">
+        <script>
+            function preparePage() {
+                $("#headerHomeData").addClass("active");
+                $("#leftHomeData").addClass("active");
+            }
+        </script>
+    </head>
+    <body onload="preparePage()">
+        <div class="navbar" id="topHeader">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="index.html">Test app</a>
+                    <div class="navbar-content">
+                        <ul class="nav nav-pills">
+                            <li id="headerHomeData">
+                                <a href="index.html">Домашняя</a>
+                            </li>
+                            <li id="headerInputData">
+                                <a href="input.html">Ввод данных</a>
+                            </li>
+                            <li id="headerShowData">
+                                <a href="output.html">Обзор</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span3" id="leftMenu">
+                <ul class="nav nav-tabs nav-stacked">
+                            <li id="leftHomeData">
+                                <a href="index.html">Домашняя</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li id="leftInputData">
+                                <a href="input.html">Ввод данных</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li id="leftShowData">
+                                <a href="output.html">Обзор</a>
+                            </li>
+                </ul>
+            </div>
+            <div class="span1">
+            </div>
+            <div class="span7" id="inputPlace">
+                <div class="hero-unit">
+                    <h3>Ввод данных</h3>
+                    <p>Если вы хотите ввести данные, нажмите кнопку</p>
+                    <p>
+                    <a class="btn btn-primary btn-large" href="input.html">
+                        Ввести данные
+                    </a>
+                    </p>
+                </div>
+                <div class="hero-unit">
+                    <h3>Обзор данных</h3>
+                    <p>Если вы хотите просмотреть данные и изменить их, нажмите кнопку</p>
+                    <p>
+                    <a class="btn btn-primary btn-large" href="output.html">
+                        Обзор
+                    </a>
+                    </p>
+                </div>
+            </div>
+            <div class="span1">
+            </div>
+        </div>
+    </body>
+</html>

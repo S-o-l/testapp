@@ -1,0 +1,374 @@
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Output page</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="JS/jquery.js"></script>
+        <script src="JS/bootstrap.js"></script>
+        <link href="CSS/bootstrap.css" rel="stylesheet">
+        <link href="CSS/bootstrap-responsive.css" rel="stylesheet">
+        <style>
+        .table th {
+            text-align: center !important;   
+        }
+        </style>
+        <script>
+            var indexedEmployees = [];
+            function preparePage() {
+                $("#headerShowData").addClass("active");
+                $("#leftShowData").addClass("active");
+                getAll(1);
+            }
+            function getAll(page) {
+                indexedEmployees.length = 0;
+                $.ajax ({
+                    url: "map/getemployees",
+                    success: function(data) {
+                        if (data == "failure") {
+                            $("#serverAnswer").html("Ошибка. Обновите страницу.").addClass("alert").addClass("alert-error");
+                        } else {
+                            $("#serverAnswer").html("");
+                            var allEmployees = JSON.parse(data);
+                            for (var x in allEmployees) {
+                                indexedEmployees.push({ 'key': x, 'employee': allEmployees[x]});
+                            }
+                            formOutput(page);
+                        }
+                    },
+                    error: function() {
+                        $("#serverAnswer").html("Ошибка. Обновите страницу.").addClass("alert").addClass("alert-error");
+                    }
+                });
+            }
+            function formOutput(page) {
+                console.log(JSON.stringify(indexedEmployees));
+                console.log("-----------" + Math.ceil(indexedEmployees.length / 5));
+                var paginationLength = Math.ceil(indexedEmployees.length / 5);//(indexedEmployees.length / 5 | 0) + 1;
+                if (page > paginationLength) page = paginationLength;
+                formTable(page);
+                formPagination(page);
+                if ($("#manageHeader").hasClass("vis")) {
+                    $("#manageHeader").collapse("hide").removeClass("vis");
+                }
+            }
+            function formTable(page) {
+                $("#employeeTableBody").html("");
+                var startingKey = (page - 1) * 5;
+                var endingKey = (((page * 5) - 1) < indexedEmployees.length - 1) ? ((page * 5) - 1) : indexedEmployees.length - 1;
+                console.log("starting: " + startingKey + " ending: " + endingKey);
+                for (j= startingKey; j <= endingKey; j++) {
+                    var newRow = document.createElement("tr");
+                    newRow.setAttribute("id", "rowNumber" + j);
+                    newRow.setAttribute("onclick", "makeRowSelected(\"rowNumber" + j + "\")");
+                    newRow.setAttribute("data-employeeindex", j);
+                    var cell1 = document.createElement("td");
+                    cell1.innerHTML = indexedEmployees[j].employee.name;
+                    var cell2 = document.createElement("td");
+                    cell2.innerHTML = indexedEmployees[j].employee.surname;
+                    var cell3 = document.createElement("td");
+                    cell3.innerHTML = indexedEmployees[j].employee.telephone;
+                    var cell4 = document.createElement("td");
+                    cell4.innerHTML = indexedEmployees[j].employee.address;
+                    var cell5 = document.createElement("td");
+                    cell5.innerHTML = indexedEmployees[j].employee.department.title;
+                    newRow.appendChild(cell1);
+                    newRow.appendChild(cell2); 
+                    newRow.appendChild(cell3); 
+                    newRow.appendChild(cell4); 
+                    newRow.appendChild(cell5); 
+                    document.getElementById("employeeTableBody").appendChild(newRow);
+                }
+            }
+            function formPagination(page) {
+                $("#paginationBody").html("");
+                var paginationLength = Math.ceil(indexedEmployees.length / 5);//(indexedEmployees.length / 5 | 0) + 1;(indexedEmployees.length / 5 | 0) + 1;
+                var leftPage = (page - 2 <= 0) ? 1 : page - 2;
+                var rightPage = (page + 2 >= paginationLength) ? paginationLength : page + 2;
+                var newLi = document.createElement("li");
+                newLi.setAttribute("id", "pageFirst");
+                newLi.setAttribute("onclick", "formOutput(" + 1 + ")");
+                newLi.innerHTML = "<a href=\"#\">" + "Первая" + "</a>";
+                document.getElementById("paginationBody").appendChild(newLi);
+                for (j = leftPage; j <= rightPage; j++) {
+                    console.log(j);
+                    var newLi = document.createElement("li");
+                    newLi.setAttribute("id", "page" + j);
+                    newLi.setAttribute("onclick", "formOutput(" + j + ")");
+                    newLi.innerHTML = "<a href=\"#\">" + j + "</a>";
+                    document.getElementById("paginationBody").appendChild(newLi);
+                }
+                var newLi = document.createElement("li");
+                newLi.setAttribute("id", "pageLast");
+                newLi.setAttribute("onclick", "formOutput(" + paginationLength + ")");
+                newLi.innerHTML = "<a href=\"#\">" + "Последняя" + "</a>";
+                document.getElementById("paginationBody").appendChild(newLi);
+                $("#page" + page).addClass("active");
+            }
+            function makeRowSelected(rowId) {
+                var prevSelRow = $("#employeeTableBody").attr("class");
+                if (prevSelRow != null) $("#" + prevSelRow).removeClass();
+                $("#employeeTableBody").attr("data-employeeindex", $("#" + rowId).attr("data-employeeindex"));
+                $("#employeeTableBody").attr("class", rowId);
+                $("#"+rowId).attr("class", "info");
+                if (!$("#manageHeader").hasClass("vis")) {
+                    $("#manageHeader").collapse("show").addClass("vis");
+                }
+            }
+            function deleteEmployee() {
+                var passing = indexedEmployees[$("#employeeTableBody").attr("data-employeeindex")].employee;
+                $.ajax ({
+                    url: "map/deleteemployee",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(passing),
+                    success: function(data) {
+                        if (data == "failure") {
+                            $("#serverConfirmation").html("Ошибка. Попробуйте еще раз.").addClass("text-error");
+                        } else {
+                            $("#serverConfirmation").html("Сотрудник успешно удален!").addClass("text-success");
+                        }
+                    },
+                    error: function() {
+                        $("#serverConfirmation").html("Ошибка. Попробуйте еще раз.").addClass("text-error");
+                    }, 
+                    complete: function () {
+                        serverConfirm();
+                    }
+                });
+            }
+            function serverConfirm() {
+                var page = Math.floor($("#employeeTableBody").attr("data-employeeindex") / 5) + 1;
+                console.log(page + "---------------");
+                getAll(page);
+                $("#confirmationHeader").collapse("show");
+                window.setTimeout(function () {
+                    $("#confirmationHeader").collapse("hide");
+                    $("#serverConfirmation").html("");
+                    $("#serverConfirmation").attr("class", "pull-right");
+                }, 3000);
+            }
+            function openModal() {
+                $("#serverAnswerModal").html("").removeClass("alert").removeClass("alert-info");
+                getDepartments();
+                fillModal();
+            }
+            function getDepartments() {
+                $.ajax ({
+                   url: "map/getDepartments",
+                   dataType: "json",
+                   success: function(data) {
+                       $.each(data, function(key, val) {
+                           $("#selectDepartment").append("<option id=\"" + val.dep_id + "\">" + val.title + "</option>");
+                       });
+                       $("#selectDepartment").val(indexedEmployees[$("#employeeTableBody").attr("data-employeeindex")].employee.department.title);                        
+                   },
+                   error: function() {
+                       $("#serverAnswerModal").html("Ошибка. Попробуйте еще раз.").addClass("alert").addClass("alert-info");
+                   }
+                });
+            }
+            function fillModal() {
+                var employee = indexedEmployees[$("#employeeTableBody").attr("data-employeeindex")].employee;
+                $("#inputName").val(employee.name);
+                $("#inputSurname").val(employee.surname);
+                $("#inputTelephone").val(employee.telephone);
+                $("#inputAddress").val(employee.address);
+                $("#selectDepartment").val(employee.department.title);
+            }
+            function verifyNameForm(fieldId) {
+                if ($("#" + fieldId).val().length < 1) $("#" + fieldId + "Place").html("Слишком мало символов!");
+                else if ($("#" + fieldId).val().length > 50) $("#" + fieldId + "Place").html("Слишком много символов!");
+                else if (!$("#" + fieldId).val().match("^[а-яА-Я]+$")) $("#" + fieldId + "Place").html("Только буквы а-Я разрешены!");
+                else $("#" + fieldId + "Place").html("Ок");
+            }
+            function checkForm() {
+                if (!($("#inputSurnamePlace").html() == "Ок") || !($("#inputNamePlace").html() == "Ок")) {
+                    $("#serverAnswerModal").html("Заполните верно имя и фамилию!").addClass("alert").addClass("alert-error");
+                } else {
+                    $("#serverAnswerModal").html("").removeClass("alert").removeClass("alert-error");
+                    sendForm();
+                }
+            }
+            function sendForm() {
+                var employee = indexedEmployees[$("#employeeTableBody").attr("data-employeeindex")].employee;
+                var passing = {};
+                employee.name = $("#inputName").val();
+                employee.surname = $("#inputSurname").val();
+                employee.telephone =  $("#inputTelephone").val();
+                employee.address = $("#inputAddress").val();
+                employee.department.title = $("#selectDepartment").val();
+                employee.department.dep_id = $("#selectDepartment").children(":selected").attr("id");
+                indexedEmployees[$("#employeeTableBody").attr("data-employeeindex")].employee = employee;
+                $.ajax ({
+                    url: "map/updateemployee",
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify(employee),
+                    success: function(data) {
+                        if (data == "failure") {
+                            $("#serverConfirmation").html("Ошибка.").addClass("alert").addClass("alert-error");
+                        } else {
+                            $("#serverConfirmation").html("Информация успешно обновлена!").addClass("alert").addClass("alert-success");
+                        }
+                    },
+                    error: function() {
+                        $("#serverConfirmation").html("Ошибка. Попробуйте еще раз.").addClass("alert").addClass("alert-error");
+                    },
+                    complete: function() {
+                        serverConfirm();
+                    }
+                });
+            }
+            
+        </script>
+    </head>
+    <body onload="preparePage()">
+        <div class="navbar" id="topHeader">
+            <div class="navbar-inner">
+                <div class="container">
+                    <a class="brand" href="index.html">Test app</a>
+                    <div class="navbar-content">
+                        <ul class="nav nav-pills">
+                            <li id="headerHomeData">
+                                <a href="index.html">Домашняя</a>
+                            </li>
+                            <li id="headerInputData">
+                                <a href="input.html">Ввод данных</a>
+                            </li>
+                            <li id="headerShowData">
+                                <a href="output.html">Обзор</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span3" id="leftMenu">
+                <ul class="nav nav-tabs nav-stacked">
+                    <li id="leftHomeData">
+                        <a href="index.html">Домашняя</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li id="leftInputData">
+                        <a href="input.html">Ввод данных</a>
+                    </li>
+                    <li class="divider"></li>
+                    <li id="leftShowData">
+                        <a href="output.html">Обзор</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="span1">
+            </div>
+            <div class="span7" id="inputPlace">
+                <h4> Сводная таблица сотрудников </h4>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Фамилия</th>
+                            <th>Телефон</th>
+                            <th>Адрес</th>
+                            <th>Департамент</th>
+                        </tr>
+                    </thead>   
+                    <tbody id="employeeTableBody">
+                    </tbody>
+                </table>
+                <div class="pagination pagination-centered">
+                    <ul id="paginationBody">
+                    </ul>
+                </div>
+                <div id="manageHeader" class="row-fluid collapse">
+                    <form class="form-inline">
+                        <a class="btn btn-danger pull-right" data-toggle="modal" data-target="#deleteEmployeeApprModal">Удалить</a>
+                        <a class="btn btn-warning pull-right" data-toggle="modal" data-target="#updateEmployeeApprModal" onclick="openModal()">Редактировать</a>
+                    </form>
+                </div>
+                <div id="confirmationHeader" class="row-fluid collapse">
+                    <form class="form-inline">
+                        <a id="serverConfirmation" class="pull-right"></a>
+                    </form>
+                </div>
+                <a id="serverAnswer">Ожидайте загрузки данных.......</a>
+                <div id="deleteEmployeeModal">
+                    <div id="deleteEmployeeApprModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="deleteEmployeeModalLabel" aria-hidden="true">
+                        <div class="modal-header">
+                          <h3 id="deleteEmployeeModalLabel">Подтверждение удаления</h3>
+                        </div>
+                        <div class="modal-body">
+                            <h4>Вы уверены, что хотите удалить сотрудника?</h4>
+                            <p>Данная операция не может быть отменена после завершения.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                            <button class="btn btn-danger" onclick="deleteEmployee()" data-dismiss="modal" aria-hidden="true">Да, удалить</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="updateEmployeeModal">
+                    <div id="updateEmployeeApprModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="updateEmployeeModalLabel" aria-hidden="true">
+                        <div class="modal-header">
+                          <h3 id="updateEmployeeModalLabel">Редактировать сотрудника</h3>
+                        </div>
+                        <div class="modal-body">
+                            
+                <form class="form-horizontal">
+                    <div class="control-group">
+                        <label class="control-label" for="inputName">Введите имя</label>
+                        <div class="controls">
+                            <input type="text" id="inputName" placeholder="Имя" onblur="verifyNameForm('inputName')">
+                            <a id="inputNamePlace">Ок</a>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputSurname">Введите фамилию</label>
+                        <div class="controls">
+                            <input type="text" id="inputSurname" placeholder="Фамилия" onblur="verifyNameForm('inputSurname')">
+                            <a id="inputSurnamePlace">Ок</a>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputTelephone">Введите телефон</label>
+                        <div class="controls">
+                            <input type="text" id="inputTelephone" placeholder="0XX-XXX-XX-XX">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputAddress">Введите Адрес</label>
+                        <div class="controls">
+                            <input type="text" id="inputAddress" placeholder="Адрес">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label class="control-label" for="inputDepartment">Выберите департамент</label>
+                        <div class="controls">
+                            <select id="selectDepartment">
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <div class="controls">
+                            <a id="serverAnswerModal"></a>
+                        </div>
+                    </div>
+                </form>
+                            
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn" data-dismiss="modal" aria-hidden="true">Отмена</button>
+                            <button class="btn btn-warning" data-dismiss="modal" aria-hidden="true" onclick="checkForm()" aria-hidden="true">Обновить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="span1">
+            </div>
+        </div>
+    </body>
+</html>
